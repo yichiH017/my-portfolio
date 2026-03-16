@@ -76,8 +76,8 @@ const CATEGORIES = ["ALL", "CG", "角色設計", "UI", "影片", "N8N工作流"]
 
 export default function App() {
   const [currentView, setCurrentView] = useState('gallery');
-  const [activeCategory, setActiveCategory] = useState("CG"); // 一開始預設為 CG
-  const [showNav, setShowNav] = useState(false); // 首訪頂部隱藏
+  const [activeCategory, setActiveCategory] = useState("CG"); 
+  const [showNav, setShowNav] = useState(false); 
   const [isMouseAtTop, setIsMouseAtTop] = useState(false);
   const [hasExplored, setHasExplored] = useState(false); 
   const [lastScrollTop, setLastScrollTop] = useState(0);
@@ -97,16 +97,13 @@ export default function App() {
       const isAtTop = currentScrollTop < 20;
       const isAtBottom = currentScrollTop + containerHeight >= totalHeight - 20;
 
-      // 追蹤使用者是否離開過首屏
       if (currentScrollTop > 100 && !hasExplored) {
         setHasExplored(true);
       }
 
-      // 選單顯示邏輯
       if (isAtBottom || (isAtTop && hasExplored) || isMouseAtTop) {
         setShowNav(true);
       } else {
-        // 中間區域：向上捲動顯示，向下捲動隱藏
         if (currentScrollTop > lastScrollTop && currentScrollTop > 50) {
           setShowNav(false);
         } else if (currentScrollTop < lastScrollTop) {
@@ -153,8 +150,8 @@ export default function App() {
 
   useEffect(() => {
     if (currentView !== 'gallery') {
-      setShowNav(false); // 進入分頁時強制隱藏導覽列
-      setIsMouseAtTop(false); // 重置感應狀態
+      setShowNav(false); 
+      setIsMouseAtTop(false); 
     }
   }, [currentView]);
 
@@ -170,7 +167,7 @@ export default function App() {
         />
       )}
 
-      {/* 頂部導覽列：增加畫廊模式的顯示判斷 */}
+      {/* 頂部導覽列 */}
       <nav 
         onMouseEnter={() => currentView === 'gallery' && setShowNav(true)}
         onMouseLeave={() => !isMouseAtTop && setShowNav(false)}
@@ -187,18 +184,20 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 分類篩選器 */}
+      {/* 分類篩選器 - 修正手機端裁切問題 */}
       {currentView === 'gallery' && (
         <div 
           onMouseEnter={() => setShowNav(true)}
-          className={`fixed top-20 md:top-24 left-0 w-full z-[131] px-4 md:px-12 flex items-center justify-center py-4 pointer-events-none transition-all duration-700 ease-in-out ${showNav ? 'translate-y-0 opacity-100' : '-translate-y-48 opacity-0'}`}
+          // 修正點：在手機端使用 justify-start 避免置中造成的左右裁切，桌機端再切換回 justify-center
+          className={`fixed top-20 md:top-24 left-0 w-full z-[131] px-4 md:px-12 flex items-center justify-start md:justify-center py-4 pointer-events-none transition-all duration-700 ease-in-out ${showNav ? 'translate-y-0 opacity-100' : '-translate-y-48 opacity-0'}`}
         >
-          <div className="pointer-events-auto flex items-center gap-1 bg-stone-900/90 backdrop-blur-2xl p-1.5 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] max-w-full overflow-x-auto no-scrollbar whitespace-nowrap">
+          {/* 在這層加上一個右側空間 (pr-4) 確保滑到底有留白 */}
+          <div className="pointer-events-auto flex items-center gap-1 bg-stone-900/90 backdrop-blur-2xl p-1.5 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] max-w-full overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
             {CATEGORIES.map(cat => (
               <button 
                 key={cat} 
                 onClick={() => handleCategoryChange(cat)}
-                className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] px-5 py-2.5 rounded-full transition-all duration-300 ${activeCategory === cat ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/40' : 'text-stone-400 hover:text-white hover:bg-white/5'}`}
+                className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] px-5 py-2.5 rounded-full transition-all duration-300 flex-shrink-0 ${activeCategory === cat ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/40' : 'text-stone-400 hover:text-white hover:bg-white/5'}`}
               >
                 {cat}
               </button>
@@ -207,7 +206,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 內容容器 - 啟動 Scroll Snap */}
+      {/* 內容容器 */}
       <div 
         ref={containerRef}
         className={`h-screen w-full relative ${currentView === 'gallery' ? 'snap-container custom-scrollbar' : 'overflow-y-auto'}`}
@@ -223,7 +222,7 @@ export default function App() {
             <FooterSection onInquiry={() => setCurrentView('inquiry')} />
           </div>
         ) : (
-          <div className="fixed inset-0 z-[110] animate-in slide-in-from-right duration-700">
+          <div className="fixed inset-0 z-[110] bg-stone-100">
              {currentView === 'overview' && <OverviewPage onClose={() => setCurrentView('gallery')} />}
              {currentView === 'methodology' && <MethodologyPage onClose={() => setCurrentView('gallery')} />}
              {currentView === 'inquiry' && <InquiryPage onClose={() => setCurrentView('gallery')} />}
@@ -250,34 +249,29 @@ function HeroSection({ onScrollRequest }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // 加上微小的延遲，讓瀏覽器渲染準備好後再觸發進場動畫
     const timer = setTimeout(() => setMounted(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <header className="relative h-screen w-full flex flex-col justify-center px-8 md:px-12 bg-[#050505] overflow-hidden text-left text-stone-100 snap-section">
-      {/* 背景巨型文字：緩慢淡入與微縮放 */}
       <div className={`absolute inset-0 flex items-center justify-center select-none pointer-events-none transform -translate-y-20 transition-all duration-[2000ms] ease-out ${mounted ? 'opacity-[0.02] md:opacity-[0.03] scale-100' : 'opacity-0 scale-95'}`}>
         <h1 className="text-[60vw] md:text-[50vw] font-black text-white text-center uppercase">AI</h1>
       </div>
       
       <div className="relative z-10">
         <div className="overflow-hidden py-4">
-          {/* 主標題：從左側平滑滑入 */}
           <h2 className={`text-[14vw] md:text-[14vw] font-black leading-[0.75] tracking-tighter uppercase mb-8 md:mb-12 italic text-left text-white transform transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${mounted ? 'translate-x-0 opacity-100' : '-translate-x-24 opacity-0'}`}>
             Digital<br/>Visions.
           </h2>
         </div>
         
-        {/* 副標題與裝飾線：延遲滑入 */}
         <div className={`flex flex-col md:flex-row md:items-center gap-6 md:gap-8 text-left transition-all duration-[1000ms] delay-500 ease-out transform ${mounted ? 'translate-x-0 opacity-100' : '-translate-x-12 opacity-0'}`}>
           <div className="h-[2px] w-16 md:w-24 bg-white"></div>
           <p className="font-sans text-[10px] md:text-sm font-bold tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-60 text-white text-left">High-Precision AIGC & Automation Artist</p>
         </div>
       </div>
       
-      {/* 底部導引按鈕：從下方淡入上浮 */}
       <button 
         onClick={onScrollRequest}
         className={`absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 group cursor-pointer transition-all duration-[1000ms] delay-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
@@ -292,11 +286,29 @@ function HeroSection({ onScrollRequest }) {
 }
 
 function FooterSection({ onInquiry }) {
+  const [mounted, setMounted] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setMounted(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <footer className="relative h-screen w-full flex flex-col justify-center bg-stone-100 text-stone-900 px-8 md:px-12 overflow-hidden text-left py-20 md:py-0 snap-section">
+    <footer ref={sectionRef} className="relative h-screen w-full flex flex-col justify-center bg-stone-100 text-stone-900 px-8 md:px-12 overflow-hidden text-left py-20 md:py-0 snap-section">
       <div className="absolute top-0 right-0 p-12 opacity-[0.02] hidden md:block"><Fingerprint className="w-[50vw] h-[50vw]" /></div>
       <div className="max-w-screen-2xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-20 items-end">
-        <div className="animate-in slide-in-from-left duration-1000 text-left text-stone-900">
+        <div className={`transition-all duration-1000 ease-out transform ${mounted ? 'translate-x-0 opacity-100' : '-translate-x-16 opacity-0'} text-left text-stone-900`}>
           <span className="font-sans text-[10px] font-black tracking-[0.5em] uppercase mb-6 md:mb-8 block opacity-40 text-stone-900 text-left">Initialize Phase 02</span>
           <h3 className="text-6xl md:text-[12vw] font-black leading-[0.85] tracking-tighter uppercase mb-10 md:mb-12 italic text-left text-stone-900">Sync<br/>Nodes.</h3>
           <div className="flex flex-col sm:flex-row gap-6 text-left">
@@ -307,7 +319,7 @@ function FooterSection({ onInquiry }) {
              </div>
           </div>
         </div>
-        <div className="lg:text-right font-sans opacity-40 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] text-stone-600 leading-relaxed text-right">
+        <div className={`lg:text-right font-sans opacity-40 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] text-stone-600 leading-relaxed text-right transition-all duration-1000 delay-300 ${mounted ? 'opacity-40 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <p>Intelligence Integrity © 2025</p>
         </div>
       </div>
@@ -365,7 +377,8 @@ function FullBleedWorkSection({ work }) {
             <button 
               onMouseEnter={() => setIsHovered(true)} 
               onMouseLeave={() => setIsHovered(false)}
-              onClick={(e) => { e.stopPropagation(); setIsHovered(false); }} 
+              // 修正點：切換按鈕狀態，這讓手機版可以「點一下打開，再點一下關閉」
+              onClick={(e) => { e.stopPropagation(); setIsHovered(!isHovered); }} 
               className="group flex items-center gap-4 md:gap-6 bg-stone-900/80 backdrop-blur-xl px-8 md:px-10 py-4 md:py-6 rounded-full border border-white/20 hover:bg-white hover:text-stone-900 transition-all duration-500 active:scale-95 text-white"
             >
               <span className="text-[10px] font-black uppercase tracking-widest">Peek Pipeline</span>
@@ -386,22 +399,40 @@ function FullBleedWorkSection({ work }) {
   );
 }
 
+// 導入載入動畫的 Overview 分頁
 function OverviewPage({ onClose }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { const timer = setTimeout(() => setMounted(true), 100); return () => clearTimeout(timer); }, []);
+
   return (
-    <div className="h-full w-full bg-stone-100 text-stone-900 pt-32 md:pt-40 pb-20 px-8 md:px-12 relative overflow-y-auto custom-scrollbar text-left text-stone-900">
-      <div className="fixed top-6 right-6 md:top-10 md:right-10 z-[150] text-stone-900"><button onClick={onClose} className="w-12 h-12 md:w-14 md:h-14 bg-white/90 backdrop-blur-md border border-stone-300 rounded-full hover:bg-stone-900 hover:text-white transition-all shadow-xl active:scale-90 flex items-center justify-center text-stone-900 shadow-stone-300"><X size={24} /></button></div>
+    <div className="absolute inset-0 bg-stone-100 text-stone-900 pt-32 md:pt-40 pb-20 px-8 md:px-12 overflow-y-auto custom-scrollbar text-left text-stone-900 z-[110]">
+      <div className={`fixed top-6 right-6 md:top-10 md:right-10 z-[150] text-stone-900 transition-all duration-700 ${mounted ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}><button onClick={onClose} className="w-12 h-12 md:w-14 md:h-14 bg-white/90 backdrop-blur-md border border-stone-300 rounded-full hover:bg-stone-900 hover:text-white transition-all shadow-xl active:scale-90 flex items-center justify-center text-stone-900 shadow-stone-300"><X size={24} /></button></div>
       <div className="max-w-screen-xl mx-auto text-stone-900">
-        <header className="mb-16 md:mb-24 text-left text-stone-900"><h2 className="text-5xl sm:text-7xl md:text-[12vw] font-black tracking-tighter uppercase leading-[0.8] mb-8 md:mb-12 italic text-stone-900 text-left">Artist Profile.</h2><div className="flex items-baseline gap-6 md:gap-12 text-left text-stone-900"></div><p className="font-sans text-[10px] md:text-xs font-bold tracking-[0.4em] opacity-60 uppercase text-left text-stone-900">AIGC Specialist</p></header>
+        <header className={`mb-16 md:mb-24 text-left text-stone-900 transition-all duration-1000 ease-out transform ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-16'}`}>
+          <h2 className="text-5xl sm:text-7xl md:text-[12vw] font-black tracking-tighter uppercase leading-[0.8] mb-8 md:mb-12 italic text-stone-900 text-left">Artist Profile.</h2>
+          <p className="font-sans text-[10px] md:text-xs font-bold tracking-[0.4em] opacity-60 uppercase text-left text-stone-900">AIGC Specialist</p>
+        </header>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-start text-stone-900 text-left">
-          <div className="lg:col-span-7 space-y-8 md:space-y-12 text-stone-900 text-left"><p className="text-xl md:text-4xl font-medium leading-tight italic text-left text-stone-900">我致力於開發具備「智慧」的生產管線。建立一套能夠理解創意需求並自動轉化為高品質資產的自動化系統。</p><p className="text-stone-500 text-sm md:text-lg leading-relaxed text-left text-stone-600">透過 n8n, ComfyUI 與 GPT-4 接口，將 AIGC 轉化為可控的數位工業流程。</p></div>
-          <div className="lg:col-span-5 relative text-left text-stone-900"><div className="aspect-[4/5] bg-stone-200 overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 rounded-sm shadow-2xl text-left text-stone-900"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover text-left" /></div></div>
+          <div className={`lg:col-span-7 space-y-8 md:space-y-12 text-stone-900 text-left transition-all duration-1000 delay-300 ease-out transform ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <p className="text-xl md:text-4xl font-medium leading-tight italic text-left text-stone-900">我致力於開發具備「智慧」的生產管線。建立一套能夠理解創意需求並自動轉化為高品質資產的自動化系統。</p>
+            <p className="text-stone-500 text-sm md:text-lg leading-relaxed text-left text-stone-600">透過 n8n, ComfyUI 與 GPT-4 接口，將 AIGC 轉化為可控的數位工業流程。</p>
+          </div>
+          <div className={`lg:col-span-5 relative text-left text-stone-900 transition-all duration-1000 delay-500 ease-out transform ${mounted ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-20 scale-95'}`}>
+            <div className="aspect-[4/5] bg-stone-200 overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 rounded-sm shadow-2xl text-left text-stone-900">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover text-left" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
+// 導入載入動畫的 Methodology 分頁
 function MethodologyPage({ onClose }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { const timer = setTimeout(() => setMounted(true), 100); return () => clearTimeout(timer); }, []);
+
   const roadmap = [
     { id: "M1", title: "Agentic Orchestration", icon: <GitBranch size={48} />, desc: "利用 n8n 建立核心邏輯。透過 AI Agent 進行自動化解析，將創意 Brief 拆解為任務流。" },
     { id: "M2", title: "Neural Synthesis", icon: <Workflow size={48} />, desc: "利用 ComfyUI 建立多節點自定義管線。將生成過程分解為構圖、光影與材質。" },
@@ -409,14 +440,43 @@ function MethodologyPage({ onClose }) {
     { id: "M4", title: "High-Fidelity", icon: <ShieldCheck size={48} />, desc: "最終工藝。透過疊代放大與局部重繪，將精度提升至 8K 工業標準。" }
   ];
   return (
-    <div className="h-full w-full bg-[#fdfdfb] text-stone-900 pt-32 md:pt-40 pb-20 px-8 md:px-12 relative overflow-y-auto custom-scrollbar text-left text-stone-900">
-      <div className="fixed top-6 right-6 md:top-10 md:right-10 z-[150] text-stone-900"><button onClick={onClose} className="w-12 h-12 md:w-14 md:h-14 bg-white border border-stone-200 rounded-full hover:bg-stone-900 hover:text-white transition-all shadow-xl flex items-center justify-center text-stone-900 shadow-stone-300"><X size={24} /></button></div>
-      <div className="max-w-screen-xl mx-auto text-stone-900 text-left"><div className="flex flex-col md:flex-row justify-between items-end mb-16 md:mb-32 border-b border-stone-200 pb-12 text-left text-stone-900"><div className="text-left text-stone-900"><span className="text-orange-600 text-[10px] font-black uppercase mb-6 block text-left">Logic</span><h2 className="text-5xl md:text-[9vw] font-black tracking-tighter uppercase leading-none text-stone-900 text-left">Methodology.</h2></div></div><div className="space-y-20 md:space-y-40 text-stone-900 text-left">{roadmap.map((item, i) => (<div key={i} className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-start group text-left text-stone-900"><div className="lg:col-span-2 text-2xl md:text-3xl font-black text-stone-200 italic group-hover:text-orange-500 transition-colors text-left italic">Phase</div><div className="lg:col-span-10 grid md:grid-cols-12 gap-6 md:gap-10 text-left text-stone-900"><div className="md:col-span-7 text-left text-stone-900 text-left"><h4 className="text-2xl md:text-3xl font-black mb-4 md:mb-8 uppercase tracking-tighter text-left text-stone-900">{item.title}</h4><p className="text-stone-500 text-[13px] md:text-lg leading-relaxed text-left text-stone-600">{item.desc}</p></div><div className="md:col-span-5 flex justify-end text-right text-stone-900"><div className="w-20 h-20 md:w-40 md:h-40 bg-white border border-stone-200 flex items-center justify-center text-stone-200 group-hover:text-orange-500 transition-all rounded-3xl shadow-sm">{item.icon}</div></div></div></div>))}</div></div>
+    <div className="absolute inset-0 bg-[#fdfdfb] text-stone-900 pt-32 md:pt-40 pb-20 px-8 md:px-12 overflow-y-auto custom-scrollbar text-left text-stone-900 z-[110]">
+      <div className={`fixed top-6 right-6 md:top-10 md:right-10 z-[150] text-stone-900 transition-all duration-700 ${mounted ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}><button onClick={onClose} className="w-12 h-12 md:w-14 md:h-14 bg-white border border-stone-200 rounded-full hover:bg-stone-900 hover:text-white transition-all shadow-xl flex items-center justify-center text-stone-900 shadow-stone-300"><X size={24} /></button></div>
+      <div className="max-w-screen-xl mx-auto text-stone-900 text-left">
+        <div className={`flex flex-col md:flex-row justify-between items-end mb-16 md:mb-32 border-b border-stone-200 pb-12 text-left text-stone-900 transition-all duration-1000 transform ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-12'}`}>
+          <div className="text-left text-stone-900">
+            <span className="text-orange-600 text-[10px] font-black uppercase mb-6 block text-left">Logic</span>
+            <h2 className="text-5xl md:text-[9vw] font-black tracking-tighter uppercase leading-none text-stone-900 text-left">Methodology.</h2>
+          </div>
+        </div>
+        <div className="space-y-20 md:space-y-40 text-stone-900 text-left">
+          {roadmap.map((item, i) => (
+            <div key={i} className={`grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-start group text-left text-stone-900 transition-all duration-1000 ease-out transform ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`} style={{ transitionDelay: `${i * 150 + 200}ms` }}>
+              <div className="lg:col-span-2 text-2xl md:text-3xl font-black text-stone-200 italic group-hover:text-orange-500 transition-colors text-left italic">Phase</div>
+              <div className="lg:col-span-10 grid md:grid-cols-12 gap-6 md:gap-10 text-left text-stone-900">
+                <div className="md:col-span-7 text-left text-stone-900 text-left">
+                  <h4 className="text-2xl md:text-3xl font-black mb-4 md:mb-8 uppercase tracking-tighter text-left text-stone-900">{item.title}</h4>
+                  <p className="text-stone-500 text-[13px] md:text-lg leading-relaxed text-left text-stone-600">{item.desc}</p>
+                </div>
+                <div className="md:col-span-5 flex justify-end text-right text-stone-900">
+                  <div className="w-20 h-20 md:w-40 md:h-40 bg-white border border-stone-200 flex items-center justify-center text-stone-200 group-hover:text-orange-500 transition-all rounded-3xl shadow-sm">
+                    {item.icon}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
+// 導入載入動畫的 Inquiry 分頁
 function InquiryPage({ onClose }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { const timer = setTimeout(() => setMounted(true), 100); return () => clearTimeout(timer); }, []);
+
   const [copied, setCopied] = useState(false);
   const emailAddress = "studio@archive.aigc";
 
@@ -440,20 +500,20 @@ function InquiryPage({ onClose }) {
   ];
 
   return (
-    <div className="h-full w-full bg-[#050505] text-white relative flex flex-col justify-start overflow-y-auto custom-scrollbar overflow-x-hidden text-left text-white">
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 text-center text-white">
-        <h2 className="text-[25vw] font-black leading-[0.7] uppercase italic opacity-[0.03] select-none tracking-tighter whitespace-nowrap text-white">
+    <div className="absolute inset-0 bg-[#050505] text-white flex flex-col justify-start overflow-y-auto custom-scrollbar overflow-x-hidden text-left text-white z-[110]">
+      <div className={`fixed inset-0 flex items-center justify-center pointer-events-none z-0 text-center text-white transition-all duration-[2000ms] ease-out ${mounted ? 'opacity-[0.03] scale-100' : 'opacity-0 scale-95'}`}>
+        <h2 className="text-[25vw] font-black leading-[0.7] uppercase italic select-none tracking-tighter whitespace-nowrap text-white">
           Let's<br/>Interface.
         </h2>
       </div>
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] overflow-hidden z-10 text-left">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:48px_48px]"></div>
       </div>
-      <div className="fixed top-6 right-6 md:top-10 md:right-10 z-[150] text-white">
+      <div className={`fixed top-6 right-6 md:top-10 md:right-10 z-[150] text-white transition-all duration-700 ${mounted ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'}`}>
         <button onClick={onClose} className="w-12 h-12 md:w-14 md:h-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full hover:bg-white hover:text-black transition-all flex items-center justify-center text-white pointer-events-auto shadow-2xl active:scale-90"><X size={20} /></button>
       </div>
       <div className="max-w-screen-xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-24 items-start relative z-20 px-6 md:px-12 pt-32 pb-40 text-left text-white">
-        <div className="lg:col-span-5 lg:sticky lg:top-40 text-left space-y-12 text-white">
+        <div className={`lg:col-span-5 lg:sticky lg:top-40 text-left space-y-12 text-white transition-all duration-1000 ease-out transform ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'}`}>
           <div className="space-y-6 text-left text-white">
             <div className="flex items-center gap-3 text-orange-500 text-left">
                <Shield size={16} className="animate-pulse" />
@@ -475,8 +535,8 @@ function InquiryPage({ onClose }) {
           </div>
         </div>
         <div className="lg:col-span-7 space-y-4 md:space-y-6 w-full text-left text-white">
-          {contactProtocols.map((protocol) => (
-            <div key={protocol.id} className="group relative p-6 md:p-10 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md transition-all duration-500 hover:border-orange-500/50 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)] text-left text-white">
+          {contactProtocols.map((protocol, i) => (
+            <div key={protocol.id} className={`group relative p-6 md:p-10 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md transition-all duration-1000 ease-out hover:border-orange-500/50 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)] text-left text-white transform ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`} style={{ transitionDelay: `${i * 150 + 300}ms` }}>
               <div className="absolute top-6 right-8 text-[9px] font-mono text-stone-700 uppercase text-left">{protocol.id}</div>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 text-left text-white">
                 <div className="flex items-start gap-6 text-left text-white">
@@ -508,7 +568,7 @@ function InquiryPage({ onClose }) {
               <div className="mt-8 pt-6 border-t border-white/5 text-left text-stone-500"><p className="font-sans text-[11px] md:text-xs text-stone-500 italic flex items-center gap-2 text-stone-500 text-left text-white"><Info size={12} className="text-orange-500 opacity-50" /> {protocol.note}</p></div>
             </div>
           ))}
-          <div className="pt-8 text-center md:text-right text-stone-800">
+          <div className={`pt-8 text-center md:text-right text-stone-800 transition-all duration-1000 delay-[800ms] ${mounted ? 'opacity-100' : 'opacity-0'}`}>
              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-stone-800 text-left">Communication Nodes Operational</p>
           </div>
         </div>
