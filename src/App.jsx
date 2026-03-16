@@ -141,8 +141,14 @@ export default function App() {
     setIsFilterExpanded(false); 
     
     if (containerRef.current) {
-      // 移除高度判斷限制：不論目前在頁面的哪個位置，只要切換分類，都會自動平滑捲動到第一件作品的位置。
       containerRef.current.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+    }
+  };
+
+  // 💡 新增：回到最上層的函數
+  const handleScrollToTop = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -256,7 +262,8 @@ export default function App() {
                 <FullBleedWorkSection key={`${work.id}-${activeCategory}`} work={work} />
               ))}
             </main>
-            <FooterSection onInquiry={() => setCurrentView('inquiry')} />
+            {/* 💡 傳遞回到最上方的方法 */}
+            <FooterSection onInquiry={() => setCurrentView('inquiry')} onScrollToTop={handleScrollToTop} />
           </div>
         ) : (
           <div className="fixed inset-0 z-[110] bg-stone-100">
@@ -322,7 +329,8 @@ function HeroSection({ onScrollRequest }) {
   );
 }
 
-function FooterSection({ onInquiry }) {
+// 💡 修正：接收 onScrollToTop 屬性並加入回到最上方按鈕
+function FooterSection({ onInquiry, onScrollToTop }) {
   const [mounted, setMounted] = useState(false);
   const sectionRef = useRef(null);
 
@@ -356,8 +364,21 @@ function FooterSection({ onInquiry }) {
              </div>
           </div>
         </div>
-        <div className={`lg:text-right font-sans opacity-40 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] text-stone-600 leading-relaxed text-right transition-all duration-1000 delay-300 ${mounted ? 'opacity-40 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <p>Intelligence Integrity © 2025</p>
+        {/* 💡 修正：右側加入 Return to Top 按鈕 */}
+        <div className={`flex flex-col lg:items-end justify-end gap-10 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <button 
+            onClick={onScrollToTop}
+            className="group flex items-center gap-4 text-[10px] font-black tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-all active:scale-95 pointer-events-auto"
+          >
+            <span className="group-hover:-translate-y-1 transition-transform duration-300">Return to Top</span>
+            <div className="w-12 h-12 border border-stone-300 rounded-full flex items-center justify-center group-hover:border-stone-900 group-hover:-translate-y-1 transition-all duration-300">
+              <ArrowDown size={18} className="transform rotate-180" />
+            </div>
+          </button>
+          
+          <div className="font-sans opacity-40 text-[9px] md:text-xs font-bold uppercase tracking-[0.2em] text-stone-600 leading-relaxed text-left lg:text-right">
+            <p>Intelligence Integrity © 2025</p>
+          </div>
         </div>
       </div>
     </footer>
