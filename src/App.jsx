@@ -83,6 +83,8 @@ export default function App() {
   const [lastScrollTop, setLastScrollTop] = useState(0);
   
   const containerRef = useRef(null);
+  const isHoveringFilterRef = useRef(false);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   // --- 滾動偵測與常駐邏輯 ---
   useEffect(() => {
@@ -134,11 +136,16 @@ export default function App() {
     }
   };
 
+  // 💡 修正 1 & 2：優化點擊邏輯，避免衝突動畫與強制滾動
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
-    setShowNav(false);
+    setIsFilterExpanded(false); // 點擊後單純讓膠囊優雅收縮，不再強制觸發 setShowNav(false)
+    
     if (containerRef.current) {
-      containerRef.current.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+      // 只有當使用者還在最頂部的 Hero 畫面時，點擊分類才會順暢引導他向下捲動
+      if (containerRef.current.scrollTop < 50) {
+        containerRef.current.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+      }
     }
   };
 
@@ -147,6 +154,20 @@ export default function App() {
       ? WORKS_DATA 
       : WORKS_DATA.filter(work => work.category === activeCategory);
   }, [activeCategory]);
+
+  useEffect(() => {
+    if (showNav && currentView === 'gallery') {
+      setIsFilterExpanded(true); 
+      const timer = setTimeout(() => {
+        if (!isHoveringFilterRef.current) {
+          setIsFilterExpanded(false);
+        }
+      }, 2000); 
+      return () => clearTimeout(timer);
+    } else {
+      setIsFilterExpanded(false); 
+    }
+  }, [showNav, currentView]);
 
   useEffect(() => {
     if (currentView !== 'gallery') {
@@ -158,7 +179,7 @@ export default function App() {
   return (
     <div className="bg-[#050505] text-stone-100 min-h-screen font-serif selection:bg-orange-500 selection:text-white overflow-hidden text-left">
       
-      {/* 頂部感應觸發區：只在主畫廊模式下啟用 */}
+      {/* 頂部感應觸發區 */}
       {currentView === 'gallery' && (
         <div 
           className="fixed top-0 left-0 w-full h-16 z-[120] pointer-events-auto cursor-ns-resize"
@@ -184,24 +205,44 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 分類篩選器 - 修正手機端裁切問題 */}
+      {/* 分類篩選器 - 膠囊呼吸選單 */}
       {currentView === 'gallery' && (
         <div 
-          onMouseEnter={() => setShowNav(true)}
-          className={`fixed top-20 md:top-24 left-0 w-full z-[131] px-4 md:px-12 flex items-center justify-start md:justify-center py-4 pointer-events-none transition-all duration-700 ease-in-out ${showNav ? 'translate-y-0 opacity-100' : '-translate-y-48 opacity-0'}`}
+          onMouseEnter={() => { setShowNav(true); setIsFilterExpanded(true); isHoveringFilterRef.current = true; }}
+          onMouseLeave={() => { setIsFilterExpanded(false); isHoveringFilterRef.current = false; }}
+          className={`fixed top-20 md:top-24 left-0 w-full z-[131] px-4 md:px-12 flex items-start justify-center py-4 pointer-events-none transition-all duration-700 ease-in-out ${showNav ? 'translate-y-0 opacity-100' : '-translate-y-48 opacity-0'}`}
         >
-          <div className="pointer-events-auto flex items-center gap-1 bg-stone-900/90 backdrop-blur-2xl p-1.5 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] max-w-full overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
-            {CATEGORIES.map(cat => (
-              <button 
-                key={cat} 
-                onClick={() => handleCategoryChange(cat)}
-                className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] px-5 py-2.5 rounded-full transition-all duration-300 flex-shrink-0 ${activeCategory === cat ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/40' : 'text-stone-400 hover:text-white hover:bg-white/5'}`}
-              >
-                {cat}
-              </button>
-            ))}
-            {/* 💡 修正：加入隱形的佔位元素，強制撐開空間，解決手機版橫向滾動吞掉右側 Padding 與圓角被裁切的問題 */}
-            <div className="w-1 flex-shrink-0" aria-hidden="true"></div>
+          <div 
+            onClick={() => setIsFilterExpanded(true)} 
+            className="pointer-events-auto flex items-center justify-center bg-stone-900/90 backdrop-blur-2xl p-1.5 rounded-[24px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex-wrap transition-all duration-500 ease-in-out max-w-full cursor-pointer"
+          >
+            {CATEGORIES.map(cat => {
+              const isActive = activeCategory === cat;
+              const isVisible = isActive || isFilterExpanded;
+              
+              return (
+                <button 
+                  key={cat} 
+                  onClick={(e) => { 
+                    e.stopPropagation();
+                    if (isActive) {
+                      setIsFilterExpanded(!isFilterExpanded);
+                    } else {
+                      handleCategoryChange(cat);
+                    }
+                  }}
+                  // 💡 修正 3：更精準的 max-w 與 text-[0px] 以消除縮放殘影和高度跳動
+                  className={`font-black uppercase tracking-[0.15em] rounded-full transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap
+                    ${isActive ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/40' : 'text-stone-400 hover:text-white hover:bg-white/5'}
+                    ${isVisible 
+                      ? 'max-w-[150px] max-h-[40px] px-5 py-2.5 opacity-100 m-0.5 text-[8px] md:text-[10px]' 
+                      : 'max-w-0 max-h-0 px-0 py-0 opacity-0 m-0 text-[0px]'}
+                  `}
+                >
+                  {cat}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
