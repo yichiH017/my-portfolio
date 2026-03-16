@@ -247,26 +247,43 @@ export default function App() {
 // --- 組件庫 ---
 
 function HeroSection({ onScrollRequest }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // 加上微小的延遲，讓瀏覽器渲染準備好後再觸發進場動畫
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <header className="relative h-screen w-full flex flex-col justify-center px-8 md:px-12 bg-[#050505] overflow-hidden text-left text-stone-100 snap-section">
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] md:opacity-[0.03] select-none pointer-events-none transform -translate-y-20">
+      {/* 背景巨型文字：緩慢淡入與微縮放 */}
+      <div className={`absolute inset-0 flex items-center justify-center select-none pointer-events-none transform -translate-y-20 transition-all duration-[2000ms] ease-out ${mounted ? 'opacity-[0.02] md:opacity-[0.03] scale-100' : 'opacity-0 scale-95'}`}>
         <h1 className="text-[60vw] md:text-[50vw] font-black text-white text-center uppercase">AI</h1>
       </div>
+      
       <div className="relative z-10">
-        <div className="overflow-hidden">
-          <h2 className="text-[14vw] md:text-[14vw] font-black leading-[0.75] tracking-tighter uppercase mb-8 md:mb-12 animate-in slide-in-from-bottom-full duration-1000 text-white italic text-left">Digital<br/>Visions.</h2>
+        <div className="overflow-hidden py-4">
+          {/* 主標題：從左側平滑滑入 */}
+          <h2 className={`text-[14vw] md:text-[14vw] font-black leading-[0.75] tracking-tighter uppercase mb-8 md:mb-12 italic text-left text-white transform transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${mounted ? 'translate-x-0 opacity-100' : '-translate-x-24 opacity-0'}`}>
+            Digital<br/>Visions.
+          </h2>
         </div>
-        <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8 animate-in fade-in duration-1000 delay-500 text-left">
+        
+        {/* 副標題與裝飾線：延遲滑入 */}
+        <div className={`flex flex-col md:flex-row md:items-center gap-6 md:gap-8 text-left transition-all duration-[1000ms] delay-500 ease-out transform ${mounted ? 'translate-x-0 opacity-100' : '-translate-x-12 opacity-0'}`}>
           <div className="h-[2px] w-16 md:w-24 bg-white"></div>
           <p className="font-sans text-[10px] md:text-sm font-bold tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-60 text-white text-left">High-Precision AIGC & Automation Artist</p>
         </div>
       </div>
+      
+      {/* 底部導引按鈕：從下方淡入上浮 */}
       <button 
         onClick={onScrollRequest}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 group cursor-pointer transition-all hover:translate-y-2"
+        className={`absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 group cursor-pointer transition-all duration-[1000ms] delay-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
          <span className="text-[8px] md:text-[10px] font-black tracking-[0.5em] uppercase text-white opacity-40 group-hover:opacity-100 transition-opacity">Launch Exploration</span>
-         <div className="w-10 h-16 border border-white/20 rounded-full flex justify-center p-2">
+         <div className="w-10 h-16 border border-white/20 rounded-full flex justify-center p-2 group-hover:border-white/40 transition-colors">
             <div className="w-1 h-3 bg-orange-500 rounded-full animate-bounce"></div>
          </div>
       </button>
@@ -348,6 +365,7 @@ function FullBleedWorkSection({ work }) {
             <button 
               onMouseEnter={() => setIsHovered(true)} 
               onMouseLeave={() => setIsHovered(false)}
+              onClick={(e) => { e.stopPropagation(); setIsHovered(false); }} 
               className="group flex items-center gap-4 md:gap-6 bg-stone-900/80 backdrop-blur-xl px-8 md:px-10 py-4 md:py-6 rounded-full border border-white/20 hover:bg-white hover:text-stone-900 transition-all duration-500 active:scale-95 text-white"
             >
               <span className="text-[10px] font-black uppercase tracking-widest">Peek Pipeline</span>
