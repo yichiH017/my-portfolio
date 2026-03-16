@@ -136,16 +136,13 @@ export default function App() {
     }
   };
 
-  // 💡 修正 1 & 2：優化點擊邏輯，避免衝突動畫與強制滾動
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
-    setIsFilterExpanded(false); // 點擊後單純讓膠囊優雅收縮，不再強制觸發 setShowNav(false)
+    setIsFilterExpanded(false); 
     
     if (containerRef.current) {
-      // 只有當使用者還在最頂部的 Hero 畫面時，點擊分類才會順暢引導他向下捲動
-      if (containerRef.current.scrollTop < 50) {
-        containerRef.current.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
-      }
+      // 移除高度判斷限制：不論目前在頁面的哪個位置，只要切換分類，都會自動平滑捲動到第一件作品的位置。
+      containerRef.current.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
     }
   };
 
@@ -231,7 +228,6 @@ export default function App() {
                       handleCategoryChange(cat);
                     }
                   }}
-                  // 💡 修正 3：更精準的 max-w 與 text-[0px] 以消除縮放殘影和高度跳動
                   className={`font-black uppercase tracking-[0.15em] rounded-full transition-all duration-500 ease-in-out overflow-hidden whitespace-nowrap
                     ${isActive ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/40' : 'text-stone-400 hover:text-white hover:bg-white/5'}
                     ${isVisible 
