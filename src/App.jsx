@@ -188,10 +188,8 @@ export default function App() {
       {currentView === 'gallery' && (
         <div 
           onMouseEnter={() => setShowNav(true)}
-          // 修正點：在手機端使用 justify-start 避免置中造成的左右裁切，桌機端再切換回 justify-center
           className={`fixed top-20 md:top-24 left-0 w-full z-[131] px-4 md:px-12 flex items-center justify-start md:justify-center py-4 pointer-events-none transition-all duration-700 ease-in-out ${showNav ? 'translate-y-0 opacity-100' : '-translate-y-48 opacity-0'}`}
         >
-          {/* 在這層加上一個右側空間 (pr-4) 確保滑到底有留白 */}
           <div className="pointer-events-auto flex items-center gap-1 bg-stone-900/90 backdrop-blur-2xl p-1.5 rounded-full border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] max-w-full overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
             {CATEGORIES.map(cat => (
               <button 
@@ -202,6 +200,8 @@ export default function App() {
                 {cat}
               </button>
             ))}
+            {/* 💡 修正：加入隱形的佔位元素，強制撐開空間，解決手機版橫向滾動吞掉右側 Padding 與圓角被裁切的問題 */}
+            <div className="w-1 flex-shrink-0" aria-hidden="true"></div>
           </div>
         </div>
       )}
@@ -377,7 +377,6 @@ function FullBleedWorkSection({ work }) {
             <button 
               onMouseEnter={() => setIsHovered(true)} 
               onMouseLeave={() => setIsHovered(false)}
-              // 修正點：切換按鈕狀態，這讓手機版可以「點一下打開，再點一下關閉」
               onClick={(e) => { e.stopPropagation(); setIsHovered(!isHovered); }} 
               className="group flex items-center gap-4 md:gap-6 bg-stone-900/80 backdrop-blur-xl px-8 md:px-10 py-4 md:py-6 rounded-full border border-white/20 hover:bg-white hover:text-stone-900 transition-all duration-500 active:scale-95 text-white"
             >
